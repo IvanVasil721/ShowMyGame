@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${project.title + ' - ShowMyGame'}">Project Title - ShowMyGame</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+</head>
+<body data-project-id="${project.id}">
+<header class="header">
+    <div class="container">
+        <div class="header-content">
+            <div class="logo">ShowMyGame</div>
+            <div class="header-actions">
+                <a href="/projects" class="btn btn-secondary">← На главную</a>
+                <div th:if="${sessionHelper.getCurrentUser() == project.author}" style="display: flex; gap: 0.5rem; margin-left: 1rem;">
+                    <a th:href="@{/project/{id}/edit(id=${project.id})}"
+                       class="btn btn-secondary">
+                        Редактировать
+                    </a>
+                    <form th:action="@{/project/{id}/delete(id=${project.id})}"
+                          method="POST"
+                          style="display: inline;"
+                          onsubmit="return confirm('Вы уверены, что хотите удалить этот проект?');">
+                        <button type="submit" class="btn btn-danger">
+                            Удалить
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+<main class="container">
+    <div th:if="${success}" class="alert alert-success" style="margin-top: 1rem;">
+        <span th:text="${success}">Успешно!</span>
+    </div>
+    <div th:if="${error}" class="alert alert-error" style="margin-top: 1rem;">
+        <span th:text="${error}">Ошибка!</span>
+    </div>
+
+    <div class="project-details">
+        <div class="project-header">
+            <img th:if="${project.imageFileName}"
+                 th:src="@{/files/projects/{id}/images/{name}(id=${project.id}, name=${project.imageFileName})}"
+                 alt="Обложка проекта" class="project-cover-large">
+            <div th:unless="${project.imageFileName}" class="project-cover-large skeleton"></div>
+
+            <div class="project-meta">
+                <h1 th:text="${project.title}">Название проекта</h1>
+
+                <div style="margin: 0.5rem 0 1rem 0; font-size: 1.1rem;">
+                    <span style="color: var(--text-secondary);">Автор: </span>
+                    <a th:href="@{/profile/{id}(id=${project.author.id})}"
+                       class="author-link"
+                       th:text="${project.author.username}">
+                        Автор
+                    </a>
+                </div>
+
+                <div style="margin-bottom: 1rem;">
+                    <span style="color: var(--text-secondary); display: block; margin-bottom: 0.25rem;">
+                        Жанры:
+                    </span>
+                    <div class="tags-container">
+                        <span class="project-genre" th:text="${project.getGenresAsString()}">Жанры</span>
+                    </div>
+                </div>
+
+                <div th:if="${project.tags != null && !project.tags.isEmpty()}" style="margin-bottom: 1.5rem;">
+                    <span style="color: var(--text-secondary); display: block; margin-bottom: 0.25rem;">
+                        Теги:
+                    </span>
+                    <div class="tags-container">
+                        <span th:each="tag : ${project.tags}"
+                              class="tag-badge"
+                              th:text="${tag}">
+                            Тег
+                        </span>
+                    </div>
+                </div>
+
+                <div style="margin-top: 1.5rem;">
+                    <h3 style="color: var(--text-primary); margin-bottom: 0.75rem;">Описание</h3>
+                    <p class="project-description"
+                       style="line-height: 1.6; font-size: 1.05rem; color: var(--text-primary);"
+                       th:text="${project.description}">
+                        Описание проекта
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div th:if="${hasGame}" class="game-container">
+            <div style="display: flex; justify-content: center; margin-top: 1.5rem;">
+                <button class="fullscreen-btn" onclick="toggleFullscreen()">
+                    <span style="font-size: 1.2rem;"></span>Во весь экран
+                </button>
+            </div>
+
+            <div class="game-frame" id="gameFrame">
+                <iframe th:src="@{/files/projects/{id}/build/index.html(id=${project.id})}"
+                        class="game-iframe"
+                        id="gameIframe"
+                        allowfullscreen
+                        allow="autoplay; gamepad"
+                        title="Игровой билд">
+                </iframe>
+            </div>
+        </div>
+
+        <div th:unless="${hasGame}" style="text-align: center; padding: 3rem; color: var(--text-secondary);">
+            <h3 style="margin-bottom: 0.5rem;">Игровая сборка временно недоступна для этого проекта</h3>
+        </div>
+    </div>
+</main>
+
+<script src="/js/project-page.js"></script>
+</body>
+</html>

@@ -15,6 +15,27 @@ function toggleFullscreen() {
     }
 }
 
+document.addEventListener('DOMContentLoaded', function() {
+    const userRate = document.body.getAttribute('data-user-rate');
+    if (userRate && userRate !== 'null') {
+        const stars = document.querySelectorAll('#userRating .star');
+        stars.forEach((star, index) => {
+            if (index < parseInt(userRate)) {
+                star.classList.add('active');
+            }
+        });
+        document.getElementById('userRatingText').textContent = `Ваша оценка: ${userRate}/5`;
+    }
+
+    const stars = document.querySelectorAll('#userRating .star');
+    stars.forEach(star => {
+        star.addEventListener('click', function() {
+            const value = parseInt(this.getAttribute('data-value'));
+            rateProject(value);
+        });
+    });
+});
+
 function rateProject(rating) {
     if (!confirm(`Поставить оценку ${rating}?`)) return;
 
@@ -53,24 +74,6 @@ function rateProject(rating) {
         alert('Ошибка сети');
     });
 }
-
-document.addEventListener('DOMContentLoaded', function() {
-    const userRate = document.body.getAttribute('data-user-rate');
-    if (userRate && userRate !== '0') {
-        const stars = document.querySelectorAll('#userRating .star');
-        stars.forEach((star, index) => {
-            if (index < userRate) {
-                star.classList.add('active');
-            }
-        });
-    }
-    document.querySelectorAll('#userRating .star').forEach(star => {
-        star.addEventListener('click', function() {
-            const rating = this.getAttribute('data-value');
-            rateProject(rating);
-        });
-    });
-});
 
 function updateAverageRating() {
     const projectId = document.body.getAttribute('data-project-id');

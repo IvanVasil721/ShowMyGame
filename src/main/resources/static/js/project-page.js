@@ -1,4 +1,3 @@
-// Полноэкранный режим для игры
 function toggleFullscreen() {
     const gameIframe = document.getElementById('gameIframe');
     if (!document.fullscreenElement) {
@@ -16,7 +15,6 @@ function toggleFullscreen() {
     }
 }
 
-// Инициализация рейтинга пользователя
 document.addEventListener('DOMContentLoaded', function() {
     const userRate = document.body.getAttribute('data-user-rate');
     if (userRate && userRate !== 'null') {
@@ -38,7 +36,6 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
-// Оценка проекта
 function rateProject(rating) {
     if (!confirm(`Вы уверены, что хотите поставить оценку ${rating}?`)) {
         return;
@@ -77,7 +74,6 @@ function rateProject(rating) {
     });
 }
 
-// Обновление средней оценки (AJAX)
 function updateAverageRating() {
     const projectId = document.body.getAttribute('data-project-id');
     fetch(`/api/rates/project/${projectId}/average`)
@@ -98,7 +94,6 @@ function updateAverageRating() {
     .catch(error => console.error('Error updating rating:', error));
 }
 
-// Отправка комментария
 function submitComment(event) {
     event.preventDefault();
     const commentText = document.getElementById('commentText').value.trim();
@@ -133,7 +128,6 @@ function submitComment(event) {
     return false;
 }
 
-// Добавление комментария в DOM
 function addCommentToDOM(comment) {
     const commentsList = document.getElementById('commentsList');
     const commentHtml = `
@@ -187,13 +181,11 @@ function addCommentToDOM(comment) {
     }
 }
 
-// Редактирование комментария
 function editComment(commentId) {
     document.getElementById(`comment-content-${commentId}`).style.display = 'none';
     document.getElementById(`comment-edit-form-${commentId}`).style.display = 'block';
 }
 
-// Сохранение отредактированного комментария
 function saveCommentEdit(commentId) {
     const newText = document.getElementById(`comment-edit-text-${commentId}`).value.trim();
     if (!newText) {
@@ -225,13 +217,11 @@ function saveCommentEdit(commentId) {
     });
 }
 
-// Отмена редактирования
 function cancelCommentEdit(commentId) {
     document.getElementById(`comment-content-${commentId}`).style.display = 'block';
     document.getElementById(`comment-edit-form-${commentId}`).style.display = 'none';
 }
 
-// Удаление комментария
 function deleteComment(commentId) {
     if (!confirm('Вы уверены, что хотите удалить этот комментарий?')) {
         return;
@@ -255,12 +245,10 @@ function deleteComment(commentId) {
     });
 }
 
-// Автоматически фокусируем игру при клике на фрейм
 document.getElementById('gameFrame')?.addEventListener('click', function() {
     document.getElementById('gameIframe')?.focus();
 });
 
-// Обработка выхода из полноэкранного режима
 document.addEventListener('fullscreenchange', function() {
     const fullscreenBtn = document.querySelector('.fullscreen-btn');
     if (fullscreenBtn) {

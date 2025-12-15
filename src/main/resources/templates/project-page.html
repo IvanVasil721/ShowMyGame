@@ -5,28 +5,43 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title th:text="${project.title + ' - ShowMyGame'}">Project Title - ShowMyGame</title>
     <link rel="stylesheet" th:href="@{/css/styles.css}">
+    <link rel="stylesheet" th:href="@{/css/comments-ratings.css}">
 </head>
-<body data-project-id="${project.id}">
+<body th:attr="data-project-id=${project.id}, data-user-rate=${userRate != null ? userRate.rate : 0}">
 <header class="header">
     <div class="container">
         <div class="header-content">
             <div class="logo">ShowMyGame</div>
             <div class="header-actions">
-                <a href="/projects" class="btn btn-secondary">← На главную</a>
-                <div th:if="${sessionHelper.getCurrentUser() == project.author}" style="display: flex; gap: 0.5rem; margin-left: 1rem;">
-                    <a th:href="@{/project/{id}/edit(id=${project.id})}"
-                       class="btn btn-secondary">
-                        Редактировать
-                    </a>
-                    <form th:action="@{/project/{id}/delete(id=${project.id})}"
-                          method="POST"
-                          style="display: inline;"
-                          onsubmit="return confirm('Вы уверены, что хотите удалить этот проект?');">
-                        <button type="submit" class="btn btn-danger">
-                            Удалить
-                        </button>
-                    </form>
-                </div>
+                <a href="/projects" class="btn btn-secondary" style="margin-right: 1rem;">← На главную</a>
+                <th:block th:if="${sessionHelper != null && sessionHelper.isAuthenticated()}">
+                    <th:block th:if="${sessionHelper.getCurrentUser() == project.author}">
+                        <a th:href="@{/project/{id}/edit(id=${project.id})}"
+                           class="btn btn-secondary" style="margin-right: 1rem;">
+                            Редактировать
+                        </a>
+                        <form th:action="@{/project/{id}/delete(id=${project.id})}"
+                              method="POST"
+                              style="display: inline;">
+                            <button type="submit" class="btn btn-danger"
+                                    onclick="return confirm('Вы уверены, что хотите удалить этот проект?');">
+                                Удалить
+                            </button>
+                        </form>
+                    </th:block>
+
+                    <button th:if="${sessionHelper != null && sessionHelper.isAuthenticated()}"
+                            id="bookmarkBtn"
+                            th:onclick="toggleBookmark([[${project.id}]])"
+                            th:class="${isBookmarked} ? 'btn-bookmark active' : 'btn-bookmark'"
+                            style="margin-left: 1rem; border: none; cursor: pointer;">
+                        <span id="bookmarkIcon" th:text="${isBookmarked} ? '★' : '☆'"></span>
+                        <span id="bookmarkText" th:text="${isBookmarked} ? 'В избранном' : 'В избранное'"></span>
+                    </button>
+                </th:block>
+                <th:block th:unless="${sessionHelper != null && sessionHelper.isAuthenticated()}">
+                    <a th:href="@{/auth}" class="btn btn-primary">Войти</a>
+                </th:block>
             </div>
         </div>
     </div>
@@ -57,6 +72,50 @@
                        th:text="${project.author.username}">
                         Автор
                     </a>
+                </div>
+
+                <div class="rating-container">
+                    <div class="rating-section">
+                        <div class="rating-title">Ваша оценка</div>
+                        <div class="star-rating" id="userRating" th:attr="data-project-id=${project.id}">
+                            <th:block th:if="${sessionHelper != null && sessionHelper.isAuthenticated()}">
+                                <span class="star" data-value="1">★</span>
+                                <span class="star" data-value="2">★</span>
+                                <span class="star" data-value="3">★</span>
+                                <span class="star" data-value="4">★</span>
+                                <span class="star" data-value="5">★</span>
+                            </th:block>
+                            <th:block th:unless="${sessionHelper != null && sessionHelper.isAuthenticated()}">
+                                <span style="color: #666; cursor: default;">★</span>
+                                <span style="color: #666; cursor: default;">★</span>
+                                <span style="color: #666; cursor: default;">★</span>
+                                <span style="color: #666; cursor: default;">★</span>
+                                <span style="color: #666; cursor: default;">★</span>
+                            </th:block>
+                        </div>
+                        <div id="userRatingText" style="margin-top: 0.5rem; font-size: 0.9rem; color: var(--text-secondary);">
+                            <span th:if="${userRate != null}" th:text="'Ваша оценка: ' + ${userRate.rate} + '/5'">
+                                Ваша оценка: 5/5
+                            </span>
+                            <span th:if="${userRate == null && sessionHelper != null && sessionHelper.isAuthenticated()}">
+                                Оцените проект
+                            </span>
+                            <span th:if="${sessionHelper == null || !sessionHelper.isAuthenticated()}">
+                                Войдите, чтобы оценить проект
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="rating-section" style="text-align: center;">
+                        <div class="rating-title">Средняя оценка</div>
+                        <div class="average-rating"
+                             th:text="${#strings.defaultString(#numbers.formatDecimal(averageRate ?: 0, 1, 1), '0.0')}">
+                            0.0
+                        </div>
+                        <div class="rating-count" th:text="'(Оценок: ' + ${totalRates} + ')'">
+                            (0 оценок)
+                        </div>
+                    </div>
                 </div>
 
                 <div style="margin-bottom: 1rem;">
@@ -93,7 +152,7 @@
         </div>
 
         <div th:if="${hasGame}" class="game-container">
-            <div style="display: flex; justify-content: center; margin-top: 1.5rem;">
+            <div style="display: flex; justify-content: center; margin-bottom: 0.5rem;">
                 <button class="fullscreen-btn" onclick="toggleFullscreen()">
                     <span style="font-size: 1.2rem;"></span>Во весь экран
                 </button>
@@ -113,9 +172,99 @@
         <div th:unless="${hasGame}" style="text-align: center; padding: 3rem; color: var(--text-secondary);">
             <h3 style="margin-bottom: 0.5rem;">Игровая сборка временно недоступна для этого проекта</h3>
         </div>
+
+        <div class="comments-section">
+            <h2 class="comments-title">Комментарии</h2>
+
+            <div th:if="${sessionHelper != null && sessionHelper.isAuthenticated()}" class="comment-form">
+                <h3 style="margin-bottom: 1rem; color: var(--text-primary);">Добавить комментарий</h3>
+                <form id="commentForm" onsubmit="return submitComment(event)">
+                    <textarea id="commentText"
+                              class="comment-textarea"
+                              placeholder="Напишите ваш комментарий..."
+                              required></textarea>
+                    <button type="submit" class="btn btn-primary">
+                        Отправить комментарий
+                    </button>
+                </form>
+            </div>
+            <div th:unless="${sessionHelper != null && sessionHelper.isAuthenticated()}" style="text-align: center; padding: 2rem;">
+                <p style="color: var(--text-secondary); margin-bottom: 1rem;">
+                    Войдите, чтобы оставить комментарий
+                </p>
+                <a th:href="@{/auth}" class="btn btn-primary">Войти / Зарегистрироваться</a>
+            </div>
+
+            <div class="comments-list" id="commentsList">
+                <div th:each="comment : ${comments}" class="comment-item" th:id="|comment-${comment.id}|">
+                    <div class="comment-header">
+                        <div class="comment-author">
+                            <a th:href="@{/profile/{id}(id=${comment.user.id})}" style="text-decoration: none;">
+                                <img th:if="${comment.user.avatarFileName}"
+                                     th:src="@{/files/users/{id}/avatar(id=${comment.user.id})}"
+                                     alt="Аватар" class="comment-avatar">
+                                <div th:unless="${comment.user.avatarFileName}" class="comment-avatar-placeholder">
+                                    <span th:text="${#strings.substring(comment.user.username, 0, 1).toUpperCase()}">
+                                        U
+                                    </span>
+                                </div>
+                            </a>
+                            <div class="comment-info">
+                                <a th:href="@{/profile/{id}(id=${comment.user.id})}"
+                                   class="comment-username"
+                                   th:text="${comment.user.username}">
+                                    Пользователь
+                                </a>
+                                <div class="comment-date"
+                                     th:text="${#temporals.format(comment.createdAt, 'dd.MM.yyyy HH:mm')}">
+                                    01.01.2023 12:00
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="comment-actions"
+                             th:if="${sessionHelper != null && sessionHelper.isAuthenticated() && comment.user.id == sessionHelper.getCurrentUser().id}">
+                            <button class="comment-action-btn edit"
+                                    th:onclick="|editComment(${comment.id})|">
+                                Редактировать
+                            </button>
+                            <button class="comment-action-btn delete"
+                                    th:onclick="|deleteComment(${comment.id})|">
+                                Удалить
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="comment-content" th:id="|comment-content-${comment.id}|">
+                        <span th:text="${comment.text}">Текст комментария</span>
+                    </div>
+
+                    <div class="comment-edit-form" th:id="|comment-edit-form-${comment.id}|">
+                        <textarea class="comment-edit-textarea"
+                                  th:id="|comment-edit-text-${comment.id}|"
+                                  th:text="${comment.text}"></textarea>
+                        <div style="display: flex; gap: 0.5rem;">
+                            <button class="btn btn-primary"
+                                    th:onclick="|saveCommentEdit(${comment.id})|">
+                                Сохранить
+                            </button>
+                            <button class="btn btn-secondary"
+                                    th:onclick="|cancelCommentEdit(${comment.id})|">
+                                Отмена
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div th:if="${#lists.isEmpty(comments)}" class="no-comments">
+                    <p>Пока нет комментариев. Будьте первым!</p>
+                </div>
+            </div>
+        </div>
     </div>
 </main>
 
 <script src="/js/project-page.js"></script>
+<script src="/js/bookmarks.js"></script>
 </body>
 </html>

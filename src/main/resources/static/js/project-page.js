@@ -37,17 +37,14 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function rateProject(rating) {
-    if (!confirm(`Вы уверены, что хотите поставить оценку ${rating}?`)) {
-        return;
-    }
+    if (!confirm(`Поставить оценку ${rating}?`)) return;
 
     const projectId = document.body.getAttribute('data-project-id');
-    fetch(`/api/rates/project/${projectId}`, {
+    fetch(`/api/rates/project/${projectId}?rate=${rating}`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
-        },
-        body: `rate=${rating}`
+        }
     })
     .then(response => response.json())
     .then(data => {
@@ -62,15 +59,19 @@ function rateProject(rating) {
             });
 
             document.getElementById('userRatingText').textContent = `Ваша оценка: ${rating}/5`;
-            updateAverageRating();
-            alert('Оценка поставлена!');
+
+            if (data.averageRate) {
+                document.querySelector('.average-rating').textContent = data.averageRate.toFixed(1);
+            }
+
+            alert('Оценка сохранена!');
         } else {
             alert('Ошибка: ' + data.error);
         }
     })
     .catch(error => {
         console.error('Error:', error);
-        alert('Ошибка при отправке оценки');
+        alert('Ошибка сети');
     });
 }
 
@@ -244,7 +245,6 @@ function deleteComment(commentId) {
         alert('Ошибка при удалении комментария');
     });
 }
-
 document.getElementById('gameFrame')?.addEventListener('click', function() {
     document.getElementById('gameIframe')?.focus();
 });

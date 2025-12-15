@@ -87,7 +87,7 @@ document.getElementById('login-form')?.addEventListener('submit', async function
         document.getElementById('login-loading').style.display = 'none';
 
         if (result.success) {
-            showMessage('login-success', 'Успешный вход! Перенаправление...', false);
+            showMessage('login-success', 'Успешный вход!', false);
             setTimeout(() => {
                 window.location.href = '/projects';
             }, 500);

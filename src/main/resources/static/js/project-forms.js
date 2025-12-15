@@ -27,15 +27,31 @@ function updateGenresCount() {
 }
 
 let tags = [];
-
 document.addEventListener('DOMContentLoaded', function() {
     const savedTags = document.body.getAttribute('data-saved-tags');
-    if (savedTags && savedTags !== 'null' && savedTags.startsWith('[')) {
+    console.log("Сохраненные теги из атрибута:", savedTags);
+
+    if (savedTags && savedTags !== 'null' && savedTags !== '[]') {
         try {
-            const tagsArray = JSON.parse(savedTags.replace(/&#39;/g, '"'));
-            tagsArray.forEach(tag => addTag(tag));
+            if (savedTags.startsWith('[')) {
+                const tagsArray = JSON.parse(savedTags.replace(/&#39;/g, '"'));
+                console.log("Парсинг JSON:", tagsArray);
+                tagsArray.forEach(tag => addTag(tag));
+            }
+            else if (savedTags.includes(',')) {
+                const tagsArray = savedTags.split(',');
+                console.log("Парсинг строки:", tagsArray);
+                tagsArray.forEach(tag => {
+                    const trimmedTag = tag.trim();
+                    if (trimmedTag) addTag(trimmedTag);
+                });
+            }
+            else if (savedTags.trim() !== '') {
+                console.log("Один тег:", savedTags);
+                addTag(savedTags.trim());
+            }
         } catch (e) {
-            console.log('Error parsing tags:', e);
+            console.error('Error parsing tags:', e, savedTags);
         }
     }
     updateTagsCounter();
@@ -93,7 +109,7 @@ function handleTagInput(event) {
 function updateHiddenTagsField() {
     const hiddenField = document.getElementById('tagsHidden');
     if (hiddenField) {
-        hiddenField.value = JSON.stringify(tags);
+        hiddenField.value = tags.join(",");
     }
 }
 
@@ -152,8 +168,8 @@ function validateZip(input) {
         return;
     }
 
-    if (file.size > 500 * 1024 * 1024) {
-        alert('Файл слишком большой (макс 500MB)');
+    if (file.size > 100 * 1024 * 1024) {
+        alert('Файл слишком большой (макс 100MB)');
         input.value = '';
     }
 }

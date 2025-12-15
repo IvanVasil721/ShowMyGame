@@ -17,21 +17,18 @@ function toggleFullscreen() {
 
 document.addEventListener('DOMContentLoaded', function() {
     const userRate = document.body.getAttribute('data-user-rate');
-    if (userRate && userRate !== 'null') {
+    if (userRate && userRate !== '0') {
         const stars = document.querySelectorAll('#userRating .star');
         stars.forEach((star, index) => {
-            if (index < parseInt(userRate)) {
+            if (index < userRate) {
                 star.classList.add('active');
             }
         });
-        document.getElementById('userRatingText').textContent = `Ваша оценка: ${userRate}/5`;
     }
-
-    const stars = document.querySelectorAll('#userRating .star');
-    stars.forEach(star => {
+    document.querySelectorAll('#userRating .star').forEach(star => {
         star.addEventListener('click', function() {
-            const value = parseInt(this.getAttribute('data-value'));
-            rateProject(value);
+            const rating = this.getAttribute('data-value');
+            rateProject(rating);
         });
     });
 });
